@@ -7,7 +7,7 @@
 #include <string>
 
 int main(int argc, char **argv){
-    ros::init(argc, argv, "turtlesim_listener");
+    ros::init(argc, argv, "turtlesim_listener1");
     ros::NodeHandle n;
 
     ros::ServiceClient turtle_client_spawn = n.serviceClient<turtlesim::Spawn>("/spawn");
