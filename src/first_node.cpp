@@ -20,18 +20,19 @@ int main(int argc, char **argv){
     turtle_spawn.request.name = "turtle2";
     // Check that the spawn call is executed correctly
     if (turtle_client_spawn.call(turtle_spawn)) {
-        ROS_INFO("Spawned turtle2 successfully at position (x: [%f], y: [%f], z: [%f])", turtle_spawn.request.x, turtle_spawn.request.y, turtle_spawn.request.theta);
+        ROS_INFO("Spawned turtle 2 successfully at position (x: [%f], y: [%f], z: [%f])", turtle_spawn.request.x, turtle_spawn.request.y, turtle_spawn.request.theta);
     } else {
-        ROS_ERROR("Failed to spawn turtle2.");
+        ROS_ERROR("Failed to spawn turtle2");
         return 1;
     }
+    // Publishers to publish the speed of the two turtles
+    ros::Publisher turtle1_pub = n.advertise<geometry_msgs::Twist>("/turtle1/cmd_vel", 100);
+    ros::Publisher turtle2_pub = n.advertise<geometry_msgs::Twist>("/turtle2/cmd_vel", 100);
 
     int turtle;
     float x_vel, y_vel, z_vel;
-    ros::Publisher turtle_pub;
     geometry_msgs::Twist turtle_vel;
-    ros::Time start;
-     while (ros::ok()) {
+    while (ros::ok()) {
         // Let the user choose which turtle to move
         do {
             std::cout << "Insert the turtle you want to control [1-2]: ";
@@ -45,26 +46,16 @@ int main(int argc, char **argv){
         std::cin >> y_vel;
         std::cout << "Insert the angular velocity z: ";
         std::cin >> z_vel;
-        // Change the publisher based on the selected turtle to publish its speed
-        turtle_pub = n.advertise<geometry_msgs::Twist>("/turtle" + std::to_string(turtle) + "/cmd_vel", 1000);
-        
+
         // TODO: Set a maximum value for the movement
         turtle_vel.linear.x = x_vel;
         turtle_vel.linear.y = y_vel;
         turtle_vel.angular.z = z_vel;
 
-        // Move the turtle for one second
-        start = ros::Time::now();
-        while (ros::Time::now() - start < ros::Duration(1.0)) {
-            turtle_pub.publish(turtle_vel);
-        }
-        // Stop the turtle after one second
-        turtle_vel.linear.x = 0;
-        turtle_vel.linear.y = 0;
-        turtle_vel.angular.z = 0;
-        turtle_pub.publish(turtle_vel);
-
+        turtle == 1 ? turtle1_pub.publish(turtle_vel) : turtle2_pub.publish(turtle_vel);
         ros::spinOnce();
+        // Move the turtle for one second
+        ros::Duration(1.0).sleep();
     }
     return 0;
 }
