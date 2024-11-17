@@ -27,15 +27,18 @@ int main(int argc, char **argv){
     }
 
     int turtle;
+    float x_vel, y_vel, z_vel;
+    ros::Publisher turtle_pub;
+    geometry_msgs::Twist turtle_vel;
+    ros::Time start;
      while (ros::ok()) {
-        // Choosing which turtle
+        // Let the user choose which turtle to move
         do {
             std::cout << "Insert the turtle you want to control [1-2]: ";
             std::cin >> turtle;
         } while (turtle != 1 && turtle != 2);
 
-        // Choosing the linear velocity of the turtle
-        float x_vel, y_vel, z_vel;
+        // Ask the user to set the turtle's speed
         std::cout << "Insert the linear velocity x: ";
         std::cin >> x_vel;
         std::cout << "Insert the linear velocity y: ";
@@ -43,20 +46,24 @@ int main(int argc, char **argv){
         std::cout << "Insert the angular velocity z: ";
         std::cin >> z_vel;
 
-        ros::Publisher turtle_pub = n.advertise<geometry_msgs::Twist>("/turtle" + std::to_string(turtle) + "/cmd_vel", 10);
-        ros::Rate rate(10);
+        turtle_pub = n.advertise<geometry_msgs::Twist>("/turtle" + std::to_string(turtle) + "/cmd_vel", 1000);
+        
+        // TODO: Set a maximum value for the movement
+        turtle_vel.linear.x = x_vel;
+        turtle_vel.linear.y = y_vel;
+        turtle_vel.angular.z = z_vel;
 
-        geometry_msgs::Twist my_vel;
-        my_vel.linear.x = x_vel;
-        my_vel.linear.y = y_vel;
-        my_vel.angular.z = z_vel;
-
-        int count = 0;
-        while (count < 10 && ros::ok()) {
-            turtle_pub.publish(my_vel);
-            rate.sleep();
-            count++;
+        // Move the turtle for one second
+        start = ros::Time::now();
+        while (ros::Time::now() - start < ros::Duration(1.0)) {
+            turtle_pub.publish(turtle_vel);
         }
+        // Stop the turtle after one second
+        turtle_vel.linear.x = 0;
+        turtle_vel.linear.y = 0;
+        turtle_vel.angular.z = 0;
+        turtle_pub.publish(turtle_vel);
+
         ros::spinOnce();
     }
     return 0;
