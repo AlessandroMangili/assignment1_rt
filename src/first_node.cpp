@@ -6,13 +6,19 @@
 #include <iostream>
 #include <string>
 
+// Definition of the maximum limits
+const float LINEAR_THR = 5.0;   // Maximum linear velocity
+const float ANGULAR_THR = 10.0; // Maximum angular velocity
+
+using namespace std;
+
 int main(int argc, char **argv){
     ros::init(argc, argv, "turtlesim_listener1");
     ros::NodeHandle n;
     // Service to spawn the turtle at a specific position
     ros::ServiceClient turtle_client_spawn = n.serviceClient<turtlesim::Spawn>("/spawn");
     turtle_client_spawn.waitForExistence();
-    // "Set the position where to spawn the new turtle
+    // Set the position where to spawn the new turtle
     turtlesim::Spawn turtle_spawn;
     turtle_spawn.request.x = 2.0;
     turtle_spawn.request.y = 1.0;
@@ -40,14 +46,19 @@ int main(int argc, char **argv){
         } while (turtle != 1 && turtle != 2);
 
         // Ask the user to set the turtle's speed
-        std::cout << "Insert the linear velocity x: ";
+        std::cout << "Insert the linear velocity x (range: -5 to +5): ";
         std::cin >> x_vel;
-        std::cout << "Insert the linear velocity y: ";
+        x_vel = min(x_vel, LINEAR_THR);
+        x_vel = max(x_vel, -LINEAR_THR);
+        std::cout << "Insert the linear velocity y (range: -5 to +5): ";
         std::cin >> y_vel;
-        std::cout << "Insert the angular velocity z: ";
+        y_vel = min(y_vel, LINEAR_THR);
+        y_vel = max(y_vel, -LINEAR_THR);
+        std::cout << "Insert the angular velocity z (range: -10 to +10): ";
         std::cin >> z_vel;
+        z_vel = std::min(z_vel, ANGULAR_THR);
+        z_vel = std::max(z_vel, -ANGULAR_THR);
 
-        // TODO: Set a maximum value for the movement
         turtle_vel.linear.x = x_vel;
         turtle_vel.linear.y = y_vel;
         turtle_vel.angular.z = z_vel;
