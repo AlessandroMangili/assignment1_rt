@@ -39,7 +39,7 @@ This node monitors the relative distance between `turtle1` and `turtle2`. It che
   ```
 - Clone the `assignment1_rt` package repository:
   ```bash
-  git clone https://github.com/AlessandroMangili/Assignment1_rt
+  git clone https://github.com/AlessandroMangili/assignment1_rt
   ```
 
 ## 2. Compile the Package
