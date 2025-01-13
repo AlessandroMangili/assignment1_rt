@@ -1,5 +1,6 @@
 #include <ros/ros.h>
 #include <std_msgs/Float32.h>
+#include <obs_message/Double16.h>   // It does not exist in std_msgs
 #include <turtlesim/Pose.h>
 #include <geometry_msgs/Twist.h>
 #include <turtlesim/Spawn.h>
@@ -12,10 +13,19 @@ const float THR = 1.0;      // Threshold to avoid collision between the two turt
 const double MIN = 1.0;     // Minimum threshold to avoid collisions with the edges
 const double MAX = 10.0;    // Maximum threshold to avoid collisions with the edges
 
+const double THR_OBS = 1.0  // Threshold to avoid collision with the obstacles
+const int ANGLES = 16       // Number of different angles provided by the topic \obstacles
+
 double x[2] = {5.544445, 2}, y[2] = {5.544445, 1}, z[2] = {0, 0};
 double x_vel[2], y_vel[2], z_vel[2];    // Contain the speed of the two turtles
 bool is_moving_t1 = false;
 double x_prev, y_prev;
+
+double[ANGLES] obs_distance;
+
+void obstaclesCallback(const obs_message::Double16::ConstPtr& msg) {
+    obs_potision = msg; // Maybe it needs a casting or a for loop to do this
+}
 
 void turtlesim1CallbackPose(const turtlesim::Pose::ConstPtr& msg) {
     x_prev = x[0];
@@ -67,6 +77,8 @@ void reverse_velocity(int id, ros::Publisher& turtle_pub, geometry_msgs::Twist t
 int main(int argc, char **argv){
     ros::init(argc, argv, "turtlesim_listener2");
     ros::NodeHandle n;
+
+    ros::Subscriber obstacles = n.subscribe("/obstacles", 1000, obstaclesCallback);
 
     // Subscribers to get the updated position of the two turtles
     ros::Subscriber turtle1_sub_pose = n.subscribe("/turtle1/pose", 1000, turtlesim1CallbackPose);
@@ -133,6 +145,21 @@ int main(int argc, char **argv){
 
             // Stop the turtle's backward movement by publishing its speed as zero
             stop_turtle(turtle2_pub, turtle2_vel);
+        }
+        for (int i = 0; i < ANGLES; i++) {
+            if (obs_distance[i] < THR_OBS) {
+                ROS_INFO("Stop turtle1 because it's too close to the obstacle %d: %f", i, obs_distance[i]);
+                // Stop the moving turtle by setting the velocity to zero
+                stop_turtle(turtle1_pub, turtle1_vel);
+                // Set the speeds in reverse to make it go back for 0.1 seconds from where it came
+                reverse_velocity(1, turtle1_pub, turtle1_vel);
+                ros::spinOnce();
+                ros::Duration(0.1).sleep();
+                // Stop the turtle's backward movement by publishing its speed as zero
+                stop_turtle(turtle1_pub, turtle1_vel);
+
+                break;
+            }
         }
         ros::spinOnce();
         loop_rate.sleep();
