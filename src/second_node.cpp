@@ -1,6 +1,6 @@
 #include <ros/ros.h>
 #include <std_msgs/Float32.h>
-#include <obs_message/Double16.h>   // It does not exist in std_msgs
+#include <std_msgs/Float32MultiArray.h>
 #include <turtlesim/Pose.h>
 #include <geometry_msgs/Twist.h>
 #include <turtlesim/Spawn.h>
@@ -13,18 +13,19 @@ const float THR = 1.0;      // Threshold to avoid collision between the two turt
 const double MIN = 1.0;     // Minimum threshold to avoid collisions with the edges
 const double MAX = 10.0;    // Maximum threshold to avoid collisions with the edges
 
-const double THR_OBS = 1.0  // Threshold to avoid collision with the obstacles
-const int ANGLES = 16       // Number of different angles provided by the topic \obstacles
+const double THR_OBS = 1.0; // Threshold to avoid collision with the obstacles
+const int ANGLES = 16;      // Number of different angles provided by the topic \obstacles
 
 double x[2] = {5.544445, 2}, y[2] = {5.544445, 1}, z[2] = {0, 0};
 double x_vel[2], y_vel[2], z_vel[2];    // Contain the speed of the two turtles
 bool is_moving_t1 = false;
 double x_prev, y_prev;
 
-double[ANGLES] obs_distance;
+float obs_distance[ANGLES];
 
-void obstaclesCallback(const obs_message::Double16::ConstPtr& msg) {
-    obs_potision = msg; // Maybe it needs a casting or a for loop to do this
+void obstaclesCallback(const std_msgs::Float32MultiArray::ConstPtr& msg) {
+    for (int i = 0; i < msg->data.size(); i++)
+        obs_distance[i] = msg->data[i]; // Maybe it needs a casting or a for loop to do this
 }
 
 void turtlesim1CallbackPose(const turtlesim::Pose::ConstPtr& msg) {
